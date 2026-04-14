@@ -118,7 +118,7 @@ def combine_images(before_img: Image.Image, after_img: Image.Image, aspect: tupl
         new_w = int(img.width * scale)
         new_h = int(img.height * scale)
         img = img.resize((new_w, new_h), Image.LANCZOS)
-        canvas = Image.new("RGB", (tw, th), (20, 20, 20))
+        canvas = Image.new("RGB", (tw, th), (255, 255, 255))
         left = (tw - new_w) // 2
         top = (th - new_h) // 2
         canvas.paste(img, (left, top))
@@ -127,7 +127,7 @@ def combine_images(before_img: Image.Image, after_img: Image.Image, aspect: tupl
     before_fitted = fit_and_pad(before_img, half_w, out_h)
     after_fitted = fit_and_pad(after_img, half_w, out_h)
 
-    collage = Image.new("RGB", (out_w, out_h), (20, 20, 20))
+    collage = Image.new("RGB", (out_w, out_h), (255, 255, 255))
     collage.paste(before_fitted, (0, 0))
     collage.paste(after_fitted, (half_w, 0))
     return collage
@@ -234,16 +234,14 @@ if generate_btn:
 
     st.success("✅ コラージュ画像が完成しました！")
     st.image(collage, caption="Before ← → After", use_container_width=True)
-
-    # Android対応ダウンロードボタン
-    b64 = base64.b64encode(collage_bytes).decode()
-    href = (
-        f'<a href="data:image/jpeg;base64,{b64}" download="before_after_collage.jpg" '
-        f'style="display:block;text-align:center;padding:12px;background:#ff4b4b;'
-        f'color:white;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">'
-        f'📥 コラージュ画像をダウンロード</a>'
+    st.caption("📱 スマホの場合は上の画像を長押し → 「画像を保存」でも保存できます")
+    st.download_button(
+        label="📥 コラージュ画像をダウンロード",
+        data=collage_bytes,
+        file_name="before_after_collage.jpg",
+        mime="image/jpeg",
+        use_container_width=True,
     )
-    st.markdown(href, unsafe_allow_html=True)
 
     with st.spinner("Gemini AIで投稿文を生成しています..."):
         try:
