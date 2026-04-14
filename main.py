@@ -141,7 +141,10 @@ def build_prompt(store_name, concern, region, booked_menu, actual_menu, point, r
 
 
 def generate_post(api_key, prompt):
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(
+        api_key=api_key,
+        http_options={"api_version": "v1"},
+    )
     response = client.models.generate_content(
         model="gemini-1.5-flash",
         contents=prompt,
