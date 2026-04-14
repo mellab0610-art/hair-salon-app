@@ -102,38 +102,31 @@ other = st.text_area("その他（任意）", placeholder="次回メニューの
 # ヘルパー関数: 画像結合
 # ─────────────────────────────────────────
 def combine_images(before_img: Image.Image, after_img: Image.Image, aspect: tuple) -> Image.Image:
-    # 高さを揃えて横に並べる
-    target_height = min(before_img.height, after_img.height, 1080)
-
-    def resize_to_height(img: Image.Image, h: int) -> Image.Image:
-        ratio = h / img.height
-        new_w = int(img.width * ratio)
-        return img.resize((new_w, h), Image.LANCZOS)
-
-    before_resized = resize_to_height(before_img, target_height)
-    after_resized = resize_to_height(after_img, target_height)
-
-    total_width = before_resized.width + after_resized.width
-    collage_raw = Image.new("RGB", (total_width, target_height), (0, 0, 0))
-    collage_raw.paste(before_resized, (0, 0))
-    collage_raw.paste(after_resized, (before_resized.width, 0))
-
-    # 指定アスペクト比にクロップ（中央基準）
     aw, ah = aspect
-    raw_w, raw_h = collage_raw.size
-    target_w = raw_w
-    target_h = int(raw_w * ah / aw)
+    # 出力サイズを決定（長辺1080px基準）
+    if aw >= ah:
+        out_w, out_h = 1080, int(1080 * ah / aw)
+    else:
+        out_h, out_w = 1080, int(1080 * aw / ah)
 
-    if target_h > raw_h:
-        target_h = raw_h
-        target_w = int(raw_h * aw / ah)
+    half_w = out_w // 2
 
-    left = (raw_w - target_w) // 2
-    top = (raw_h - target_h) // 2
-    collage = collage_raw.crop((left, top, left + target_w, top + target_h))
+    def fit_and_crop(img: Image.Image, tw: int, th: int) -> Image.Image:
+        """指定サイズにセンタークロップ（各写真を均等にトリミング）"""
+        scale = max(tw / img.width, th / img.height)
+        new_w = int(img.width * scale)
+        new_h = int(img.height * scale)
+        img = img.resize((new_w, new_h), Image.LANCZOS)
+        left = (new_w - tw) // 2
+        top = (new_h - th) // 2
+        return img.crop((left, top, left + tw, top + th))
 
-    # 長辺を1080pxに統一
-    collage.thumbnail((1080, 1080), Image.LANCZOS)
+    before_cropped = fit_and_crop(before_img, half_w, out_h)
+    after_cropped = fit_and_crop(after_img, half_w, out_h)
+
+    collage = Image.new("RGB", (out_w, out_h), (0, 0, 0))
+    collage.paste(before_cropped, (0, 0))
+    collage.paste(after_cropped, (half_w, 0))
     return collage
 
 
