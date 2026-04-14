@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 import io
-import google.generativeai as genai
+from google import genai
 
 # ─────────────────────────────────────────
 # 店舗データ
@@ -141,9 +141,11 @@ def build_prompt(store_name, concern, region, booked_menu, actual_menu, point, r
 
 
 def generate_post(api_key, prompt):
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    response = model.generate_content(prompt)
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt,
+    )
     return response.text
 
 
