@@ -75,6 +75,20 @@ with col1:
 with col2:
     after_file = st.file_uploader("After 画像", type=["jpg", "jpeg", "png", "webp"], key="after")
 
+platform = st.selectbox(
+    "📐 投稿先に合わせた画像サイズ",
+    [
+        "Googleビジネスプロフィール（4:3 横長）",
+        "Instagram フィード（4:5 縦長）",
+        "Instagram 正方形（1:1）",
+    ],
+)
+ASPECT_RATIOS = {
+    "Googleビジネスプロフィール（4:3 横長）": (4, 3),
+    "Instagram フィード（4:5 縦長）": (4, 5),
+    "Instagram 正方形（1:1）": (1, 1),
+}
+
 st.subheader("3. 施術情報")
 concern = st.text_area("ご来店時のお悩み *", placeholder="例）くせ毛でまとまらない、広がりやすい、パサつきが気になる")
 region = st.text_input("お住まいの地域（任意）", placeholder="例）福岡市中央区、春日市")
@@ -87,7 +101,8 @@ other = st.text_area("その他（任意）", placeholder="次回メニューの
 # ─────────────────────────────────────────
 # ヘルパー関数: 画像結合
 # ─────────────────────────────────────────
-def combine_images(before_img: Image.Image, after_img: Image.Image) -> Image.Image:
+def combine_images(before_img: Image.Image, after_img: Image.Image, aspect: tuple) -> Image.Image:
+    # 高さを揃えて横に並べる
     target_height = min(before_img.height, after_img.height, 1080)
 
     def resize_to_height(img: Image.Image, h: int) -> Image.Image:
@@ -99,9 +114,26 @@ def combine_images(before_img: Image.Image, after_img: Image.Image) -> Image.Ima
     after_resized = resize_to_height(after_img, target_height)
 
     total_width = before_resized.width + after_resized.width
-    collage = Image.new("RGB", (total_width, target_height), (255, 255, 255))
-    collage.paste(before_resized, (0, 0))
-    collage.paste(after_resized, (before_resized.width, 0))
+    collage_raw = Image.new("RGB", (total_width, target_height), (0, 0, 0))
+    collage_raw.paste(before_resized, (0, 0))
+    collage_raw.paste(after_resized, (before_resized.width, 0))
+
+    # 指定アスペクト比にクロップ（中央基準）
+    aw, ah = aspect
+    raw_w, raw_h = collage_raw.size
+    target_w = raw_w
+    target_h = int(raw_w * ah / aw)
+
+    if target_h > raw_h:
+        target_h = raw_h
+        target_w = int(raw_h * aw / ah)
+
+    left = (raw_w - target_w) // 2
+    top = (raw_h - target_h) // 2
+    collage = collage_raw.crop((left, top, left + target_w, top + target_h))
+
+    # 長辺を1080pxに統一
+    collage.thumbnail((1080, 1080), Image.LANCZOS)
     return collage
 
 
@@ -194,7 +226,7 @@ if generate_btn:
             from PIL import ImageOps
             before_img = ImageOps.exif_transpose(Image.open(before_file)).convert("RGB")
             after_img = ImageOps.exif_transpose(Image.open(after_file)).convert("RGB")
-            collage = combine_images(before_img, after_img)
+            collage = combine_images(before_img, after_img, ASPECT_RATIOS[platform])
 
             buf = io.BytesIO()
             collage.save(buf, format="JPEG", quality=90)
