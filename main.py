@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image
 import io
-from google import genai
+from groq import Groq
 
 # ─────────────────────────────────────────
 # 店舗データ
@@ -46,16 +46,16 @@ st.caption("ビフォーアフター画像の結合 ＋ SNS投稿文を自動生
 # ─────────────────────────────────────────
 # APIキー（シークレット or サイドバー入力）
 # ─────────────────────────────────────────
-api_key = st.secrets.get("GEMINI_API_KEY", "")
+api_key = st.secrets.get("GROQ_API_KEY", "")
 
 with st.sidebar:
     st.header("⚙️ 設定")
     if not api_key:
         api_key = st.text_input(
-            "Gemini APIキー",
+            "Groq APIキー",
             type="password",
-            placeholder="AIza...",
-            help="Google AI StudioでGemini APIキーを取得してください。無料で使えます。",
+            placeholder="gsk_...",
+            help="console.groq.com で無料取得できます。",
         )
     else:
         st.success("✅ APIキー設定済み")
@@ -141,12 +141,13 @@ def build_prompt(store_name, concern, region, booked_menu, actual_menu, point, r
 
 
 def generate_post(api_key, prompt):
-    client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-lite",
-        contents=prompt,
+    client = Groq(api_key=api_key)
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=1024,
     )
-    return response.text
+    return response.choices[0].message.content
 
 
 def build_footer(store_name):
