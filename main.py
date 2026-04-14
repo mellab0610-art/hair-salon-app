@@ -221,4 +221,8 @@ if generate_btn:
             st.stop()
 
     footer = build_footer(store_name)
-    full_post = f"{post_body}\n\n{HASHTAGS}
+    full_post = f"{post_body}\n\n{HASHTAGS}\n{footer}"
+
+    st.success("✅ 投稿文が生成されました！")
+    st.subheader("📝 生成された投稿文")
+    st.text_area("投稿文（コピーして使用してください）", value=full_post, height=480)
