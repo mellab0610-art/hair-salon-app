@@ -236,28 +236,15 @@ if generate_btn:
     st.success("✅ コラージュ画像が完成しました！")
     st.image(collage, caption="Before ← → After", use_container_width=True)
 
-    b64 = base64.b64encode(collage_bytes).decode()
-
-    # Blob URL方式（Android Chrome対応）
-    components.html(f"""
-    <button onclick="(function(){{
-        var b=atob('{b64}');
-        var a=new Uint8Array(b.length);
-        for(var i=0;i<b.length;i++) a[i]=b.charCodeAt(i);
-        var blob=new Blob([a],{{type:'image/jpeg'}});
-        var url=URL.createObjectURL(blob);
-        var link=document.createElement('a');
-        link.href=url;
-        link.download='before_after_collage.jpg';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }})()" style="width:100%;padding:14px;background:#ff4b4b;color:white;
-    border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;">
-    📥 コラージュ画像を保存
-    </button>
-    """, height=65)
+    # application/octet-stream で強制ダウンロード（Android Chrome対応）
+    st.download_button(
+        label="📥 コラージュ画像をダウンロード",
+        data=collage_bytes,
+        file_name="before_after_collage.jpg",
+        mime="application/octet-stream",
+        use_container_width=True,
+        type="primary",
+    )
 
     with st.spinner("Gemini AIで投稿文を生成しています..."):
         try:
