@@ -191,8 +191,9 @@ if generate_btn:
 
     with st.spinner("画像を結合しています..."):
         try:
-            before_img = Image.open(before_file).convert("RGB")
-            after_img = Image.open(after_file).convert("RGB")
+            from PIL import ImageOps
+            before_img = ImageOps.exif_transpose(Image.open(before_file)).convert("RGB")
+            after_img = ImageOps.exif_transpose(Image.open(after_file)).convert("RGB")
             collage = combine_images(before_img, after_img)
 
             buf = io.BytesIO()
