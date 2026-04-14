@@ -112,9 +112,20 @@ def combine_images(before_img: Image.Image, after_img: Image.Image, aspect: tupl
         out_h, out_w = 1080, int(1080 * aw / ah)
 
     half_w = out_w // 2
+    is_portrait = ah > aw  # 縦長(4:5)のみ余白あり
+
+    def fit_and_crop(img: Image.Image, tw: int, th: int) -> Image.Image:
+        """余白なし・センタークロップ（横長・正方形用）"""
+        scale = max(tw / img.width, th / img.height)
+        new_w = int(img.width * scale)
+        new_h = int(img.height * scale)
+        img = img.resize((new_w, new_h), Image.LANCZOS)
+        left = (new_w - tw) // 2
+        top = (new_h - th) // 2
+        return img.crop((left, top, left + tw, top + th))
 
     def fit_and_pad(img: Image.Image, tw: int, th: int) -> Image.Image:
-        """写真全体が見えるようにフィット（余白は黒）"""
+        """全体表示・白余白（縦長用）"""
         scale = min(tw / img.width, th / img.height)
         new_w = int(img.width * scale)
         new_h = int(img.height * scale)
@@ -125,12 +136,14 @@ def combine_images(before_img: Image.Image, after_img: Image.Image, aspect: tupl
         canvas.paste(img, (left, top))
         return canvas
 
-    before_fitted = fit_and_pad(before_img, half_w, out_h)
-    after_fitted = fit_and_pad(after_img, half_w, out_h)
+    process = fit_and_pad if is_portrait else fit_and_crop
+
+    before_out = process(before_img, half_w, out_h)
+    after_out = process(after_img, half_w, out_h)
 
     collage = Image.new("RGB", (out_w, out_h), (255, 255, 255))
-    collage.paste(before_fitted, (0, 0))
-    collage.paste(after_fitted, (half_w, 0))
+    collage.paste(before_out, (0, 0))
+    collage.paste(after_out, (half_w, 0))
     return collage
 
 
