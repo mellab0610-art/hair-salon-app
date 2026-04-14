@@ -233,10 +233,28 @@ if generate_btn:
             st.stop()
 
     st.success("✅ コラージュ画像が完成しました！")
-    st.image(collage, caption="Before ← → After", use_container_width=True)
-    st.caption("📱 スマホの場合は上の画像を長押し → 「画像を保存」でも保存できます")
+
+    # 画像をHTML imgタグで表示（Android長押し保存対応）
+    b64 = base64.b64encode(collage_bytes).decode()
+    st.markdown(
+        f'<img src="data:image/jpeg;base64,{b64}" '
+        f'style="width:100%;border-radius:8px;margin-bottom:8px;" />',
+        unsafe_allow_html=True,
+    )
+
+    # 新しいタブで開くボタン（Android最も確実な保存方法）
+    st.markdown(
+        f'<a href="data:image/jpeg;base64,{b64}" target="_blank" '
+        f'style="display:block;text-align:center;padding:12px;background:#1f77b4;'
+        f'color:white;border-radius:8px;text-decoration:none;font-weight:bold;'
+        f'font-size:16px;margin-bottom:8px;">🔍 画像を別タブで開く → 長押しで保存</a>',
+        unsafe_allow_html=True,
+    )
+    st.caption("iPhone: タブで開いた画像を長押し →「写真に追加」\nAndroid: タブで開いた画像を長押し →「画像を保存」")
+
+    # PCユーザー向けダウンロードボタン
     st.download_button(
-        label="📥 コラージュ画像をダウンロード",
+        label="📥 ダウンロード（PC向け）",
         data=collage_bytes,
         file_name="before_after_collage.jpg",
         mime="image/jpeg",
