@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image
 import io
 import base64
+import streamlit.components.v1 as components
 from groq import Groq
 
 # ─────────────────────────────────────────
@@ -233,33 +234,30 @@ if generate_btn:
             st.stop()
 
     st.success("✅ コラージュ画像が完成しました！")
+    st.image(collage, caption="Before ← → After", use_container_width=True)
 
-    # 画像をHTML imgタグで表示（Android長押し保存対応）
     b64 = base64.b64encode(collage_bytes).decode()
-    st.markdown(
-        f'<img src="data:image/jpeg;base64,{b64}" '
-        f'style="width:100%;border-radius:8px;margin-bottom:8px;" />',
-        unsafe_allow_html=True,
-    )
 
-    # 新しいタブで開くボタン（Android最も確実な保存方法）
-    st.markdown(
-        f'<a href="data:image/jpeg;base64,{b64}" target="_blank" '
-        f'style="display:block;text-align:center;padding:12px;background:#1f77b4;'
-        f'color:white;border-radius:8px;text-decoration:none;font-weight:bold;'
-        f'font-size:16px;margin-bottom:8px;">🔍 画像を別タブで開く → 長押しで保存</a>',
-        unsafe_allow_html=True,
-    )
-    st.caption("iPhone: タブで開いた画像を長押し →「写真に追加」\nAndroid: タブで開いた画像を長押し →「画像を保存」")
-
-    # PCユーザー向けダウンロードボタン
-    st.download_button(
-        label="📥 ダウンロード（PC向け）",
-        data=collage_bytes,
-        file_name="before_after_collage.jpg",
-        mime="image/jpeg",
-        use_container_width=True,
-    )
+    # Blob URL方式（Android Chrome対応）
+    components.html(f"""
+    <button onclick="(function(){{
+        var b=atob('{b64}');
+        var a=new Uint8Array(b.length);
+        for(var i=0;i<b.length;i++) a[i]=b.charCodeAt(i);
+        var blob=new Blob([a],{{type:'image/jpeg'}});
+        var url=URL.createObjectURL(blob);
+        var link=document.createElement('a');
+        link.href=url;
+        link.download='before_after_collage.jpg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }})()" style="width:100%;padding:14px;background:#ff4b4b;color:white;
+    border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;">
+    📥 コラージュ画像を保存
+    </button>
+    """, height=65)
 
     with st.spinner("Gemini AIで投稿文を生成しています..."):
         try:
