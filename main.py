@@ -44,16 +44,21 @@ st.title("✂️ 髪質改善 投稿ジェネレーター")
 st.caption("ビフォーアフター画像の結合 ＋ SNS投稿文を自動生成します")
 
 # ─────────────────────────────────────────
-# サイドバー: APIキー入力
+# APIキー（シークレット or サイドバー入力）
 # ─────────────────────────────────────────
+api_key = st.secrets.get("GEMINI_API_KEY", "")
+
 with st.sidebar:
     st.header("⚙️ 設定")
-    api_key = st.text_input(
-        "Gemini APIキー",
-        type="password",
-        placeholder="AIza...",
-        help="Google AI StudioでGemini APIキーを取得してください。無料で使えます。",
-    )
+    if not api_key:
+        api_key = st.text_input(
+            "Gemini APIキー",
+            type="password",
+            placeholder="AIza...",
+            help="Google AI StudioでGemini APIキーを取得してください。無料で使えます。",
+        )
+    else:
+        st.success("✅ APIキー設定済み")
     st.markdown("---")
     st.caption("このアプリはスマートフォンからの操作を前提としています。")
 
@@ -216,8 +221,4 @@ if generate_btn:
             st.stop()
 
     footer = build_footer(store_name)
-    full_post = f"{post_body}\n\n{HASHTAGS}\n{footer}"
-
-    st.success("✅ 投稿文が生成されました！")
-    st.subheader("📝 生成された投稿文")
-    st.text_area("投稿文（コピーして使用してください）", value=full_post, height=480)
+    full_post = f"{post_body}\n\n{HASHTAGS}
