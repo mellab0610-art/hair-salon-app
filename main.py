@@ -249,7 +249,6 @@ if generate_btn:
     st.success("✅ コラージュ画像が完成しました！")
     st.image(collage, caption="Before ← → After", use_container_width=True)
 
-    # application/octet-stream で強制ダウンロード（Android Chrome対応）
     st.download_button(
         label="📥 コラージュ画像をダウンロード",
         data=collage_bytes,
@@ -258,6 +257,7 @@ if generate_btn:
         use_container_width=True,
         type="primary",
     )
+    st.info("📱 ダウンロードできない場合\n\nホーム画面のアイコンからではなく、**Chromeブラウザで直接URLを開いて**お試しください。\n\n`hair-salon-app-s4d2qt32vzelsour6qdfxs.streamlit.app`")
 
     with st.spinner("Gemini AIで投稿文を生成しています..."):
         try:
