@@ -136,7 +136,7 @@ def combine_images(before_img: Image.Image, after_img: Image.Image, aspect: tupl
         canvas.paste(img, (left, top))
         return canvas
 
-    process = fit_and_pad if is_portrait else fit_and_crop
+    process = fit_and_crop
 
     before_out = process(before_img, half_w, out_h)
     after_out = process(after_img, half_w, out_h)
